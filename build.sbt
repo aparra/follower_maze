@@ -2,10 +2,12 @@ name := "follower_maze"
 
 version := "0.0.1"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.10.2"
 
 javacOptions ++= Seq("-encoding", "UTF-8")
 
-resolvers += "Local Maven Repository" at "file:///"+ Path.userHome +"/.m2/repository"
+libraryDependencies ++= Seq(
+    "org.specs2" %% "specs2" % "2.2.2" % "test"
+)
 
 EclipseKeys.withSource := true
