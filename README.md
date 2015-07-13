@@ -1,6 +1,3 @@
-# follower_maze
-Route TCP Connections
-
 ### The problem
 Build a system which acts as a socket server, reading events from an 
 *event source* and forwarding them when appropriate to *user clients*.
@@ -60,3 +57,16 @@ If there are no *user client* connected for a user, any notifications
 for them must be silently ignored. *user clients* expect to be notified of
 events **in the correct order**, regardless of the order in which the
 *event source* sent them.
+
+### Running
+In the command line interface you can execute:
+
+* **sbt eclipse** to build an eclipse project
+* **sbt test** to execute the tests cases 
+
+To start the server, you can use the sbt tool as well. There are two optional parameters: **USER_CLIENT_PORT** and **EVENT_SOURCE_PORT**. The default value is **9099** and **9090** respectively.
+
+> sbt "run-main com.soundcloud.followermaze.Server [USER_CLIENT_PORT] [EVENT_SOURCE_PORT]"
+
+### The solution
+![Components](http://s21.postimg.org/3w0ofko2f/follower_maze.jpg)
