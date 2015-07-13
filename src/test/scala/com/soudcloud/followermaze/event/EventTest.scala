@@ -2,8 +2,9 @@ package com.soudcloud.followermaze.event
 
 import org.specs2.matcher.ParserMatchers
 import org.specs2.mutable.Specification
+import com.soundcloud.followermaze.event.Event
 import com.soundcloud.followermaze.event.Event._
-import com.soundcloud.followermaze.event.{ Event, Broadcast, Follow, PrivateMessage, Unfollow, StatusEvent }
+import com.soundcloud.followermaze.event.EventType._
 
 class EventTest extends Specification with ParserMatchers {
   val parsers = com.soundcloud.followermaze.event.Event
@@ -31,11 +32,13 @@ class EventTest extends Specification with ParserMatchers {
   }
 
   "Follow Event" >> {
+    val payload = "100|F|1|2"
+    
     "parser component" should {
       "recognize an event" in {
-        val event = follow("100|F|1|2")
-        event must beASuccess[Follow]
-        event.get.sequence must beEqualTo(100)
+        val event = follow(payload).get
+        event.is(FOLLOW) must beTrue
+        event.toString must beEqualTo(payload)
       }
 
       "not create an invalid event" in {
@@ -48,18 +51,20 @@ class EventTest extends Specification with ParserMatchers {
     }
 
     "payload set to flag 'F'" should {
-      "be instance of Follow" in {
-        Event("100|F|1|2") must beAnInstanceOf[Follow]
+      "be a Follow event" in {
+        Event(payload).toString() must beEqualTo(payload)
       }
     }
   }
 
   "Unfollow Event" >> {
+    val payload = "100|U|1|2"
+    
     "parser component" should {
       "recognize an event" in {
-        val event = unfollow("100|U|1|2")
-        event must beASuccess[Unfollow]
-        event.get.sequence must beEqualTo(100)
+        val event = unfollow(payload).get
+        event.is(UNFOLLOW) must beTrue
+        event.toString must beEqualTo(payload)
       }
 
       "not create an invalid event" in {
@@ -72,18 +77,19 @@ class EventTest extends Specification with ParserMatchers {
     }
 
     "payload set to flag 'U'" should {
-      "be instance of Unfollow" in {
-        Event("100|U|1|2") must beAnInstanceOf[Unfollow]
+      "be an Unfollow event" in {
+        Event(payload).toString() must beEqualTo(payload)
       }
     }
   }
 
   "Broadcast Event" >> {
+    val payload = "100|B"
     "parser component" should {
       "recognize an event" in {
-        val event = broadcast("100|B")
-        event must beASuccess[Broadcast]
-        event.get.sequence must beEqualTo(100)
+        val event = broadcast(payload).get
+        event.is(BROADCAST) must beTrue
+        event.toString must beEqualTo(payload)
       }
 
       "not create an invalid event" in {
@@ -94,18 +100,19 @@ class EventTest extends Specification with ParserMatchers {
     }
 
     "payload set to flag 'B'" should {
-      "be instance of Broadcast" in {
-        Event("100|B") must beAnInstanceOf[Broadcast]
+      "be a Broadcast event" in {
+        Event(payload).toString() must beEqualTo(payload)
       }
     }
   }
 
   "Private Message Event" >> {
+    val payload = "100|P|1|2"
     "parser component" should {
       "recognize an event" in {
-        val event = privateMessage("100|P|1|2")
-        event must beASuccess[PrivateMessage]
-        event.get.sequence must beEqualTo(100)
+        val event = privateMessage(payload).get
+        event.is(PRIVATE_MESSAGE) must beTrue
+        event.toString must beEqualTo(payload)
       }
 
       "not create an invalid event" in {
@@ -118,18 +125,20 @@ class EventTest extends Specification with ParserMatchers {
     }
 
     "payload set to flag 'P'" should {
-      "be instance of PrivateMessage" in {
-        Event("100|P|1|2") must beAnInstanceOf[PrivateMessage]
+      "be a PrivateMessage event" in {
+        Event(payload).toString() must beEqualTo(payload)
       }
     }
   }
 
   "Status Event" >> {
+    val payload = "100|S|1"
+    
     "parser component" should {
       "recognize an event" in {
-        val event = statusEvent("100|S|1")
-        event must beASuccess[StatusEvent]
-        event.get.sequence must beEqualTo(100)
+        val event = statusEvent(payload).get
+        event.is(STATUS_EVENT) must beTrue
+        event.toString must beEqualTo(payload)
       }
 
       "not create an invalid event" in {
@@ -142,7 +151,7 @@ class EventTest extends Specification with ParserMatchers {
 
     "payload set to flag 'S'" should {
       "be instance of StatusEvent" in {
-        Event("100|S|1") must beAnInstanceOf[StatusEvent]
+        Event(payload).toString() must beEqualTo(payload)
       }
     }
   }

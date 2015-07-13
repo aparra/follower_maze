@@ -1,18 +1,25 @@
 package com.soundcloud.followermaze.event
 
+import scala.collection.mutable.ListBuffer
+import com.soundcloud.followermaze.event.EventType._
 import scala.util.parsing.combinator.RegexParsers
+import com.soundcloud.followermaze.user.User
 
-abstract class Event(sequence: Long)
+case class Event(sequence: Long, eventType: EventType, userFrom: Int, userTo: Int) {
 
-case class Follow(sequence: Long, fromUser: Int, toUser: Int) extends Event(sequence)
+  def this(sequence: Long, eventType: EventType) = this(sequence, eventType, userFrom = User.Unknown, userTo = User.Unknown)
 
-case class Unfollow(sequence: Long, fromUser: Int, toUser: Int) extends Event(sequence)
-
-case class Broadcast(sequence: Long) extends Event(sequence)
-
-case class PrivateMessage(sequence: Long, fromUser: Int, toUser: Int) extends Event(sequence)
-
-case class StatusEvent(sequence: Long, fromUser: Int) extends Event(sequence)
+  def this(sequence: Long, eventType: EventType, userFrom: Int) = this(sequence, eventType, userFrom, userTo = User.Unknown)
+  
+  def is(eventType: EventType): Boolean = this.eventType == eventType
+  
+  override def toString: String = {
+    val payload = ListBuffer(sequence, eventType.flag)
+    if (userFrom != User.Unknown) payload += userFrom
+    if (userTo != User.Unknown) payload += userTo
+    payload.mkString("|")
+  }
+}
 
 object Event extends RegexParsers {
 
@@ -20,30 +27,30 @@ object Event extends RegexParsers {
 
   def user = """(\d+)""".r ^^ { _.toInt }
 
-  def follow: Parser[Follow] = sequence ~ "|F|" ~ user ~ "|" ~ user ^^ {
-    case sequence ~ _ ~ fromUser ~ _ ~ toUser => Follow(sequence, fromUser, toUser)
+  def follow: Parser[Event] = sequence ~ s"|${FOLLOW.flag}|" ~ user ~ "|" ~ user ^^ {
+    case sequence ~ _ ~ userFrom ~ _ ~ userTo => Event(sequence, FOLLOW, userFrom, userTo)
   }
 
-  def unfollow: Parser[Unfollow] = sequence ~ "|U|" ~ user ~ "|" ~ user ^^ {
-    case sequence ~ _ ~ fromUser ~ _ ~ toUser => Unfollow(sequence, fromUser, toUser)
+  def unfollow: Parser[Event] = sequence ~ s"|${UNFOLLOW.flag}|" ~ user ~ "|" ~ user ^^ {
+    case sequence ~ _ ~ userFrom ~ _ ~ userTo => Event(sequence, UNFOLLOW, userFrom, userTo)
   }
 
-  def broadcast: Parser[Broadcast] = sequence ~ "|B" ^^ {
-    case sequence ~ _ => Broadcast(sequence)
+  def broadcast: Parser[Event] = sequence ~ s"|${BROADCAST.flag}" ^^ {
+    case sequence ~ _ => new Event(sequence, BROADCAST)
   }
 
-  def privateMessage: Parser[PrivateMessage] = sequence ~ "|P|" ~ user ~ "|" ~ user ^^ { 
-    case sequence ~ _ ~ fromUser ~ _ ~ toUser => PrivateMessage(sequence, fromUser, toUser)
+  def privateMessage: Parser[Event] = sequence ~ s"|${PRIVATE_MESSAGE.flag}|" ~ user ~ "|" ~ user ^^ {
+    case sequence ~ _ ~ userFrom ~ _ ~ userTo => Event(sequence, PRIVATE_MESSAGE, userFrom, userTo)
   }
 
-  def statusEvent: Parser[StatusEvent] = sequence ~ "|S|" ~ user ^^ { 
-    case sequence ~ _ ~ fromUser => StatusEvent(sequence, fromUser)
+  def statusEvent: Parser[Event] = sequence ~ s"|${STATUS_EVENT.flag}|" ~ user ^^ {
+    case sequence ~ _ ~ userFrom => new Event(sequence, STATUS_EVENT, userFrom)
   }
 
   def event = follow | unfollow | broadcast | privateMessage | statusEvent
 
   def apply(payload: String): Event = parseAll(event, payload) match {
-    case Success(event, _) => event
-    case failure: NoSuccess    => throw new IllegalArgumentException("event")
+    case Success(event, _)  => event
+    case error: NoSuccess => throw new IllegalArgumentException("unknown payload")
   }
 }
