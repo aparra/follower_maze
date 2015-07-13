@@ -8,14 +8,13 @@ class UserRepositoryTest extends Specification {
   "User repository" should {
     val userRepository = new UserRepository()
 
-    "returns 'None' for unknown user" in {
-      userRepository.findById(1) must beNone
+    "returns User even when user_id not exist" in {
+      userRepository.get(1).id must beEqualTo(1)
     }
     
-    "returns 'Some(User)' for known user" in {
-      val user = User(42)
-      userRepository.save(user)
-      userRepository.findById(42).get must beEqualTo(user)
+    "returns User for existing user_id" in {
+      userRepository.save(42)
+      userRepository.get(42).id must beEqualTo(42)
     }
   }
 }
