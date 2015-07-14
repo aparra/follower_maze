@@ -36,5 +36,6 @@ object Server {
     }
     
     start(userClientPort, eventSourcePort)
+    LOGGER.info("Ctrl-C for graceful shutdown");
   }
 }
