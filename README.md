@@ -70,3 +70,22 @@ To start the server, you can use the sbt tool as well. There are two optional pa
 
 ### The solution
 ![Components](http://s21.postimg.org/3w0ofko2f/follower_maze.jpg)
+
+* Input is handled by UserClientHandler and EventClientHandler.
+  * UserClientHandler receives users connections and for each user opens a connection in Router component. 
+  * EventClientHandler receives the events and stores it in a buffer inside Router component.
+* Router has a list of routes. Each route is responsible to handle an unique event. According the event, a Route should update the user information, if required. Also a Route returns the users that should notified by event.
+* Delivery process (of routing process) happens in order of sequence events. If an event is received but cannot be delivered, it waits in the buffer until your predecessor event is received.
+ 
+### Design
+
+###### Buffer of events
+The events will arrive out of order and should be delivered in order. In order to handle this efficiently, a hashtable is used to store events working like a buffer where the **event sequence** is used to identify the event in the hashtable. Admitting that there is not sequence duplications, we don't have collisions in hashtable. The event will be kept in the buffer until the next to delivery in sequence (predecessor) arrives. The hashtable ensures constant-time (*O(1)*) stores & lookups, and removes the overhead of sorting or searching in the buffer.
+
+###### Threads
+The input is handled by two main threads *UserClientHandler* and *EventClientHandler*. There is not race condition between these threads because they handle different kind of events.
+In UserClientHandler and EventClientHandler run in parallell but the connections received by each handler runs in a single-thread. It causes slower performance but not generates race condition in handlers and it is easier to test. This solution have supported the input, but it can be improved using a multi-thread handler implemented using a thread-pool (if all request are handle by a new thread, there is a problem to manage the threads).
+
+###### Improvements
+* Implement a thread-pool in each handlers to process to provide parallel processing
+* Change the solution to use actors using [akka](http://akka.io/)
