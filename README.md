@@ -59,7 +59,7 @@ events **in the correct order**, regardless of the order in which the
 *event source* sent them.
 
 ### Running
-In the command line interface you can execute:
+In the command line interface, you need go to follower_maze directory and you can execute the commands bellow:
 
 * **sbt eclipse** to build an eclipse project
 * **sbt test** to execute the tests cases 
@@ -67,6 +67,10 @@ In the command line interface you can execute:
 To start the server, you can use the sbt tool as well. There are two optional parameters: **USER_CLIENT_PORT** and **EVENT_SOURCE_PORT**. The default value is **9099** and **9090** respectively.
 
 > sbt "run-main com.soundcloud.followermaze.Server [USER_CLIENT_PORT] [EVENT_SOURCE_PORT]"
+
+To execute using default settings, you can run:
+
+> sbt "run-main com.soundcloud.followermaze.Server"
 
 ### The solution
 ![Components](http://s21.postimg.org/3w0ofko2f/follower_maze.jpg)
