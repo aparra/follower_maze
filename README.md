@@ -1,3 +1,5 @@
+![Build Status](https://travis-ci.org/aparra/follower_maze.svg?branch=master)
+
 ### The problem
 Build a system which acts as a socket server, reading events from an 
 *event source* and forwarding them when appropriate to *user clients*.
