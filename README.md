@@ -1,4 +1,4 @@
-![Build Status](https://travis-ci.org/aparra/follower_maze.svg?branch=master)
+[![Build Status](https://travis-ci.org/aparra/follower_maze.svg?branch=master)](https://travis-ci.org/aparra/follower_maze)
 
 ### The problem
 Build a system which acts as a socket server, reading events from an 
