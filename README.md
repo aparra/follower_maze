@@ -78,8 +78,8 @@ To execute using default settings, you can run:
 ![Components](http://s21.postimg.org/3w0ofko2f/follower_maze.jpg)
 
 * Input is handled by UserClientHandler and EventClientHandler.
-  * UserClientHandler receives users connections and for each user opens a connection in Router component. 
-  * EventClientHandler receives the events and stores it in a buffer inside Router component.
+  * UserClientHandler receives users connections. The processing is delegated to a new thread, for each user connection one session is opened in Router component.
+  * EventClientHandler receives the events. The processing is delegated to a new thread that stores the received event in a buffer inside Router component.
 * Router has a list of routes. Each route is responsible for handling an unique event. According the event, a Route should update the user information, if required. Also a Route returns the users that should notified by event.
 * Delivery process (of routing process) happens in order of sequence of events. If an event is received but cannot be delivered, it waits in the buffer until your predecessor event be received.
  
@@ -90,8 +90,8 @@ The events will arrive out of order and should be delivered in order. In order t
 
 ###### Threads
 The input is handled by two main threads *UserClientHandler* and *EventClientHandler*. There is not race condition between these threads because they handle different kinds of events.
-Both UserClientHandler and EventClientHandler run in parallell, but the connections received by each handler runs in a single-thread. It causes slower performance but not generates race condition in handlers and it is easier to test. This solution have supported the input, but it can be improved using a multi-thread handler implemented using a thread-pool (if all requests are handled by a new thread, there will a problem to manage the threads).
+Both UserClientHandler and EventClientHandler run in parallel. Also there is a thread-pool in each handler to process the requests in parallel. In this way there is race condition between the requests processed by each *handler*. The data structure was changed to guarantee consistency in the data, now the system uses a ConcurrentHashMap to store data such as *session* and *events*.
+The size of each thread-pool was configured to 10 threads, it means that we could have max 10 threads in parallel. The idea is create a limit for the processing to avoid problem with the number of threads (if all requests are handled by a new thread, there will a problem to manage the threads). This size can be changed through the *sizePool attribute* in each handler.
 
 ###### Improvements
-* Implement a thread-pool in each handlers to process to provide parallel processing
 * Change the solution to use actors using [akka](http://akka.io/)
