@@ -19,7 +19,7 @@ class RouterTest extends Specification with Mockito {
     "open a session" in {
       val router = new Router(userRepository, Set(new BroadcastRoute()))
       router.openSession(socketClient())
-      router.session.contains(1) must beTrue
+      router.session.containsKey(1) must beTrue
     }
     
     "store in buffer a message out of order" in {
@@ -40,10 +40,10 @@ class RouterTest extends Specification with Mockito {
       router.tryDeliver(Event("2|B"))
       router.tryDeliver(Event("1|B"))
 
-      router.deliver.buffer must beEmpty
+      router.deliver.buffer.isEmpty must beTrue
       router.deliver.nextToDelivery must beEqualTo(3)
       
-      output.toString("UTF-8") must beEqualTo("1|B\n2|B\n")
+      output.toString("UTF-8") must beEqualTo("1|B\r\n2|B\r\n")
     }
   }
   

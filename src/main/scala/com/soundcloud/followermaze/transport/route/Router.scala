@@ -1,8 +1,9 @@
 package com.soundcloud.followermaze.transport.route
 
 import java.net.Socket
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.JavaConversions._
 import scala.collection.Set
-import scala.collection.mutable.HashMap
 import org.slf4j.LoggerFactory.getLogger
 import com.soundcloud.followermaze.event.Event
 import com.soundcloud.followermaze.transport.RichSocket._
@@ -11,7 +12,7 @@ import com.soundcloud.followermaze.user.UserRepository
 class Router(userRepository: UserRepository, routes: Set[Route]) {
   private val LOGGER = getLogger(this.getClass)
   
-  val session = new HashMap[Int, Socket]()
+  val session = new ConcurrentHashMap[Int, Socket]()
   val deliver = new SequenceBuffer()
   
   def openSession(client: Socket) {
@@ -33,27 +34,26 @@ class Router(userRepository: UserRepository, routes: Set[Route]) {
       case _ => LOGGER.error("No route to event {}", event)
     }
   }
-  
+
   private def notifyAll(users: Set[Int], event: Event) {
     users.foreach(userId => {
-      if (hasSessionActive(userId)) {
-        session(userId).send(event.toString)
-        LOGGER.debug("Sent event {} to user {}", event, userId)
-      } else {
-        LOGGER.debug("User {} disconnected, dropped event {}", userId, event)
+      Option(session.get(userId)) match {
+        case Some(userClient) => {
+          userClient.send(event.toString)
+          LOGGER.debug("Sent event {} to user {}", event, userId)
+        }
+        case _ => LOGGER.debug("User {} disconnected, dropped event {}", userId, event)
       }
     })
   }
   
-  private def hasSessionActive(userId: Int): Boolean = session.contains(userId)
-
   class SequenceBuffer(var nextToDelivery: Long = 1) {
-    val buffer = new HashMap[Long, Event]
+    val buffer = new ConcurrentHashMap[Long, Event]
 
     def tryDeliver(event: Event) {
       buffer(event.sequence) = event
-      while (buffer.contains(nextToDelivery)) {
-        routeTo(buffer.remove(nextToDelivery).get)
+      while (buffer.containsKey(nextToDelivery)) {
+        routeTo(buffer.remove(nextToDelivery))
         nextToDelivery += 1
       }
     }
